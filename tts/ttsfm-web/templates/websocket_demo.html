@@ -1,0 +1,423 @@
+{% extends "base.html" %}
+
+{% block title %}TTSFM - {{ _('websocket_demo.title') }}{% endblock %}
+
+{% block content %}
+<script type="application/json" id="ws-demo-i18n">{{ {
+    "status_connecting": _("websocket_demo.status_connecting"),
+    "status_connected": _("websocket_demo.status_connected"),
+    "status_disconnected": _("websocket_demo.status_disconnected"),
+    "status_error": _("websocket_demo.status_error"),
+    "error_not_connected": _("websocket_demo.error_not_connected"),
+    "error_empty_text": _("websocket_demo.error_empty_text"),
+    "error_streaming_prefix": _("websocket_demo.error_streaming_prefix"),
+    "error_failed_prefix": _("websocket_demo.error_failed_prefix"),
+    "info_stream_cancelled": _("websocket_demo.info_stream_cancelled"),
+    "chunk_title": _("playground.chunk_title")
+}|tojson }}</script>
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <h1 class="text-center mb-4">
+                <i class="fas fa-bolt text-warning"></i>
+                {{ _('websocket_demo.title') }}
+            </h1>
+            
+            <!-- Connection Status -->
+            <div class="alert alert-info" id="connection-status">
+                <i class="fas fa-plug me-2"></i>
+                <span id="status-text">{{ _('websocket_demo.status_connecting') }}</span>
+            </div>
+            
+            <!-- Input Form -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">{{ _('playground.generate_speech') }}</h5>
+                    
+                    <form id="streaming-form">
+                        <div class="mb-3">
+                            <label for="text-input" class="form-label">
+                                {{ _('playground.text_input_label') }}
+                            </label>
+                            <textarea 
+                                class="form-control" 
+                                id="text-input" 
+                                rows="4" 
+                                maxlength="1000"
+                                placeholder="{{ _('playground.text_input_placeholder') }}"
+                            >Experience the future of text-to-speech with real-time WebSocket streaming! This innovative feature delivers audio chunks as they're generated, providing a more responsive and engaging user experience.</textarea>
+                            <div class="form-text">
+                                <i class="fas fa-info-circle me-1"></i>
+                                {{ _('websocket_demo.stream_split_hint') }}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="voice-select" class="form-label">
+                                    {{ _('playground.voice_label') }}
+                                </label>
+                                <select class="form-select" id="voice-select">
+                                    <option value="alloy">Alloy</option>
+                                    <option value="echo">Echo</option>
+                                    <option value="fable">Fable</option>
+                                    <option value="onyx">Onyx</option>
+                                    <option value="nova">Nova</option>
+                                    <option value="shimmer">Shimmer</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="submit" class="btn btn-primary" id="stream-btn">
+                                <i class="fas fa-bolt me-2"></i>
+                                {{ _('websocket_demo.start_streaming') }}
+                            </button>
+                            <button type="button" class="btn btn-danger" id="cancel-btn" style="display: none;">
+                                <i class="fas fa-stop me-2"></i>
+                                {{ _('websocket_demo.cancel') }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Progress Section -->
+            <div class="card shadow-sm mb-4" id="progress-section" style="display: none;">
+                <div class="card-body">
+                    <h5 class="card-title">{{ _('playground.streaming_progress') }}</h5>
+                    
+                    <div class="progress mb-3" style="height: 25px;">
+                        <div 
+                            class="progress-bar progress-bar-striped progress-bar-animated" 
+                            id="progress-bar"
+                            role="progressbar" 
+                            style="width: 0%"
+                        >
+                            <span id="progress-text">0%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="row text-center">
+                        <div class="col-md-4">
+                            <h6>{{ _('playground.chunks_heading') }}</h6>
+                            <p class="h4"><span id="chunks-received">0</span> / <span id="total-chunks">0</span></p>
+                        </div>
+                        <div class="col-md-4">
+                            <h6>{{ _('playground.data_heading') }}</h6>
+                            <p class="h4" id="data-transferred">0 KB</p>
+                        </div>
+                        <div class="col-md-4">
+                            <h6>{{ _('playground.time_heading') }}</h6>
+                            <p class="h4" id="generation-time">0.0s</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Audio Chunks Display -->
+            <div class="card shadow-sm mb-4" id="chunks-section" style="display: none;">
+                <div class="card-body">
+                    <h5 class="card-title">{{ _('websocket_demo.audio_chunks_card_title') }}</h5>
+                    <div id="chunks-container" class="row g-2">
+                        <!-- Chunks will be added here dynamically -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Final Audio Player -->
+            <div class="card shadow-sm" id="audio-section" style="display: none;">
+                <div class="card-body">
+                    <h5 class="card-title">{{ _('playground.audio_player_title') }}</h5>
+                    <audio id="audio-player" controls class="w-100"></audio>
+                    <div class="mt-2">
+                        <button class="btn btn-success" id="download-btn">
+                            <i class="fas fa-download me-2"></i>
+                            {{ _('playground.download_audio') }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Info Section -->
+            <div class="card shadow-sm mt-4">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-info-circle text-info me-2"></i>
+                        {{ _('websocket_demo.about_title') }}
+                    </h5>
+                    <p>
+                        {{ _('websocket_demo.about_intro') }}
+                    </p>
+                    <ul>
+                        <li>{{ _('websocket_demo.about_latency') }}</li>
+                        <li>{{ _('websocket_demo.about_progress') }}</li>
+                        <li>{{ _('websocket_demo.about_cancel') }}</li>
+                        <li>{{ _('websocket_demo.about_efficient') }}</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Include Socket.IO -->
+<script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
+<!-- Include our WebSocket client -->
+<script src="{{ url_for('static', filename='js/websocket-tts.js') }}"></script>
+
+<script>
+const WS_DEMO_I18N = (() => {
+    const el = document.getElementById('ws-demo-i18n');
+    if (!el || !el.textContent) {
+        return {};
+    }
+    try {
+        return JSON.parse(el.textContent);
+    } catch (e) {
+        return {};
+    }
+})();
+
+// Initialize WebSocket client
+let wsClient = null;
+let currentRequestId = null;
+let startTime = null;
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Initializing WebSocket client...');
+    console.log('Server URL:', window.location.origin);
+
+    // Create WebSocket client
+    wsClient = new WebSocketTTSClient({
+        debug: true,
+        onConnect: () => {
+            console.log('WebSocket connected successfully');
+            updateConnectionStatus('connected');
+
+            // Test the connection with a ping
+            setTimeout(() => {
+                if (wsClient.testConnection) {
+                    wsClient.testConnection();
+                }
+            }, 500);
+        },
+        onDisconnect: (reason) => {
+            console.log('WebSocket disconnected:', reason);
+            updateConnectionStatus('disconnected');
+        },
+        onError: (error) => {
+            console.error('WebSocket error:', error);
+            updateConnectionStatus('error');
+            showError(`${WS_DEMO_I18N.status_error || 'Error'}: ${error.message}`);
+        }
+    });
+
+    // Form submission
+    document.getElementById('streaming-form').addEventListener('submit', handleStreamingSubmit);
+
+    // Cancel button
+    document.getElementById('cancel-btn').addEventListener('click', handleCancel);
+});
+
+function updateConnectionStatus(status) {
+    const statusEl = document.getElementById('connection-status');
+    const statusText = document.getElementById('status-text');
+
+    statusEl.className = 'alert';
+
+    switch(status) {
+        case 'connected':
+            statusEl.classList.add('alert-success');
+            statusText.innerHTML = '<i class="fas fa-check-circle me-2"></i>' + (WS_DEMO_I18N.status_connected || '');
+            // Enable the form
+            document.getElementById('stream-btn').disabled = false;
+            break;
+        case 'disconnected':
+            statusEl.classList.add('alert-warning');
+            statusText.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>' + (WS_DEMO_I18N.status_disconnected || '');
+            // Disable the form
+            document.getElementById('stream-btn').disabled = true;
+            break;
+        case 'error':
+            statusEl.classList.add('alert-danger');
+            statusText.innerHTML = '<i class="fas fa-times-circle me-2"></i>' + (WS_DEMO_I18N.status_error || '');
+            // Disable the form
+            document.getElementById('stream-btn').disabled = true;
+            break;
+        default:
+            statusEl.classList.add('alert-info');
+            statusText.innerHTML = '<i class="fas fa-plug me-2"></i>' + (WS_DEMO_I18N.status_connecting || '');
+            // Disable the form until connected
+            document.getElementById('stream-btn').disabled = true;
+    }
+}
+
+async function handleStreamingSubmit(e) {
+    e.preventDefault();
+    
+    if (!wsClient || !wsClient.isConnected()) {
+        showError(WS_DEMO_I18N.error_not_connected || '');
+        return;
+    }
+    
+    // Get form values
+    const text = document.getElementById('text-input').value.trim();
+    const voice = document.getElementById('voice-select').value;
+    const format = 'mp3';
+    
+    if (!text) {
+        showError(WS_DEMO_I18N.error_empty_text || '');
+        return;
+    }
+    
+    // Reset UI
+    resetUI();
+    
+    // Show progress section
+    document.getElementById('progress-section').style.display = 'block';
+    document.getElementById('chunks-section').style.display = 'block';
+    document.getElementById('stream-btn').disabled = true;
+    document.getElementById('cancel-btn').style.display = 'inline-block';
+    
+    startTime = Date.now();
+    
+    try {
+        const result = await wsClient.generateSpeech(text, {
+            voice: voice,
+            format: format,
+            chunkSize: 512, // Smaller chunks for more updates
+            onStart: (data) => {
+                currentRequestId = data.request_id;
+                console.log('Stream started:', data);
+            },
+            onProgress: (progress) => {
+                updateProgress(progress);
+            },
+            onChunk: (chunk) => {
+                handleAudioChunk(chunk);
+            },
+            onComplete: (result) => {
+                handleStreamComplete(result);
+            },
+            onError: (error) => {
+                showError(`${WS_DEMO_I18N.error_streaming_prefix || ''} ${error.message}`);
+            }
+        });
+        
+        console.log('Streaming completed:', result);
+        
+    } catch (error) {
+        showError(`${WS_DEMO_I18N.error_failed_prefix || ''} ${error.message}`);
+        resetUI();
+    }
+}
+
+function updateProgress(progress) {
+    const progressBar = document.getElementById('progress-bar');
+    const progressText = document.getElementById('progress-text');
+    const chunksReceived = document.getElementById('chunks-received');
+    const totalChunks = document.getElementById('total-chunks');
+    const generationTime = document.getElementById('generation-time');
+    
+    progressBar.style.width = `${progress.progress}%`;
+    progressText.textContent = `${progress.progress}%`;
+    chunksReceived.textContent = progress.chunksCompleted;
+    totalChunks.textContent = progress.totalChunks;
+    
+    if (startTime) {
+        const elapsed = (Date.now() - startTime) / 1000;
+        generationTime.textContent = `${elapsed.toFixed(1)}s`;
+    }
+}
+
+function handleAudioChunk(chunk) {
+    const container = document.getElementById('chunks-container');
+    
+    // Create chunk visualization
+    const chunkEl = document.createElement('div');
+    chunkEl.className = 'col-auto';
+    const chunkWord = WS_DEMO_I18N.chunk_title || 'Chunk';
+    chunkEl.innerHTML = `
+        <div class="badge bg-primary p-2" title="${chunkWord} ${chunk.chunkIndex + 1}">
+            <i class="fas fa-music me-1"></i>
+            ${chunk.chunkIndex + 1}
+            <small class="d-block">${(chunk.audioData.byteLength / 1024).toFixed(1)}KB</small>
+        </div>
+    `;
+    
+    container.appendChild(chunkEl);
+    
+    // Update data transferred
+    const currentData = parseFloat(document.getElementById('data-transferred').textContent);
+    const newData = currentData + (chunk.audioData.byteLength / 1024);
+    document.getElementById('data-transferred').textContent = `${newData.toFixed(1)} KB`;
+}
+
+function handleStreamComplete(result) {
+    // Create blob from combined audio
+    const blob = new Blob([result.audioData], { type: `audio/${result.format}` });
+    const url = URL.createObjectURL(blob);
+    
+    // Set up audio player
+    const audioPlayer = document.getElementById('audio-player');
+    audioPlayer.src = url;
+    
+    // Show audio section
+    document.getElementById('audio-section').style.display = 'block';
+    
+    // Set up download button
+    document.getElementById('download-btn').onclick = () => {
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `tts_stream_${Date.now()}.${result.format}`;
+        a.click();
+    };
+    
+    // Update final stats
+    document.getElementById('generation-time').textContent = `${(result.generationTime / 1000).toFixed(2)}s`;
+    
+    // Reset buttons
+    document.getElementById('stream-btn').disabled = false;
+    document.getElementById('cancel-btn').style.display = 'none';
+    
+    // Update progress bar to success
+    const progressBar = document.getElementById('progress-bar');
+    progressBar.classList.remove('progress-bar-animated');
+    progressBar.classList.add('bg-success');
+}
+
+function handleCancel() {
+    if (currentRequestId) {
+        wsClient.cancelStream(currentRequestId);
+        showInfo(WS_DEMO_I18N.info_stream_cancelled || '');
+        resetUI();
+    }
+}
+
+function resetUI() {
+    document.getElementById('progress-section').style.display = 'none';
+    document.getElementById('chunks-section').style.display = 'none';
+    document.getElementById('audio-section').style.display = 'none';
+    document.getElementById('stream-btn').disabled = false;
+    document.getElementById('cancel-btn').style.display = 'none';
+    document.getElementById('chunks-container').innerHTML = '';
+    document.getElementById('progress-bar').style.width = '0%';
+    document.getElementById('progress-bar').className = 'progress-bar progress-bar-striped progress-bar-animated';
+    document.getElementById('data-transferred').textContent = '0 KB';
+    currentRequestId = null;
+    startTime = null;
+}
+
+function showError(message) {
+    console.error(message);
+    // You could add a toast notification here
+}
+
+function showInfo(message) {
+    console.info(message);
+    // You could add a toast notification here
+}
+</script>
+{% endblock %}

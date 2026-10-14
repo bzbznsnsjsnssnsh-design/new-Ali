@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="{{ get_locale() }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}TTSFM - {{ _('nav.home') }}{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+
+    <!-- Additional Performance Optimizations -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎤</text></svg>">
+
+    <!-- Meta tags for better SEO and social sharing -->
+    <meta name="description" content="TTSFM - A Python client for text-to-speech APIs. Simple to use with support for multiple voices and audio formats.">
+    <meta name="keywords" content="text-to-speech, TTS, python, API, voice synthesis, audio generation">
+    <meta name="author" content="TTSFM">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ request.url }}">
+    <meta property="og:title" content="{% block og_title %}TTSFM - Python Text-to-Speech Client{% endblock %}">
+    <meta property="og:description" content="A Python client for text-to-speech APIs. Simple to use with support for multiple voices and audio formats.">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary">
+    <meta property="twitter:url" content="{{ request.url }}">
+    <meta property="twitter:title" content="{% block twitter_title %}TTSFM - Python Text-to-Speech Client{% endblock %}">
+    <meta property="twitter:description" content="A Python client for text-to-speech APIs. Simple to use with support for multiple voices and audio formats.">
+    
+    {% block extra_css %}{% endblock %}
+
+    <!-- Language button styling -->
+    <style>
+        /* Language dropdown button styling */
+        #languageDropdown {
+            border-color: #6c757d;
+            color: #6c757d;
+            transition: all 0.2s ease-in-out;
+            font-size: 0.875rem;
+        }
+
+        #languageDropdown:hover {
+            border-color: #495057;
+            color: #495057;
+            background-color: #f8f9fa;
+        }
+
+        #languageDropdown:focus {
+            box-shadow: 0 0 0 0.2rem rgba(108, 117, 125, 0.25);
+        }
+
+        /* Responsive language button */
+        @media (max-width: 576px) {
+            #languageDropdown {
+                font-size: 0.75rem;
+                padding: 0.25rem 0.5rem;
+            }
+        }
+
+        /* Ensure consistent button heights */
+        .navbar-nav .btn {
+            display: inline-flex;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+    <!-- Skip to content link for accessibility -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
+    <!-- Clean Navigation -->
+    <nav class="navbar navbar-expand-lg fixed-top" style="background-color: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-bottom: 1px solid #e5e7eb;">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <i class="fas fa-microphone-alt me-2"></i>
+                <span class="fw-bold">TTSFM</span>
+                <span class="badge bg-primary ms-2 small">v{{ package_version }}</span>
+            </a>
+
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('index') }}" aria-label="{{ _('nav.home') }}">
+                            <i class="fas fa-home me-1"></i>{{ _('nav.home') }}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('playground') }}" aria-label="{{ _('nav.playground') }}">
+                            <i class="fas fa-play me-1"></i>{{ _('nav.playground') }}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('docs') }}" aria-label="{{ _('nav.documentation') }}">
+                            <i class="fas fa-book me-1"></i>{{ _('nav.documentation') }}
+                        </a>
+                    </li>
+                </ul>
+
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <span class="navbar-text d-flex align-items-center">
+                            <span id="status-indicator" class="status-indicator status-offline" aria-hidden="true"></span>
+                            <span id="status-text" class="small">{{ _('nav.status_checking') }}</span>
+                        </span>
+                    </li>
+                    <li class="nav-item dropdown ms-3">
+                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" id="languageDropdown" data-bs-toggle="dropdown" aria-expanded="false" title="{{ _('common.language') }}">
+                            {% if get_locale() == 'zh' %}🇨🇳 中文{% else %}🇺🇸 English{% endif %}
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="languageDropdown">
+                            {% for lang_code, lang_name in get_supported_languages().items() %}
+                            <li>
+                                <a class="dropdown-item{% if get_locale() == lang_code %} active{% endif %}"
+                                   href="{{ url_for('set_language', lang_code=lang_code) }}">
+                                    {% if lang_code == 'en' %}🇺🇸{% elif lang_code == 'zh' %}🇨🇳{% endif %} {{ lang_name }}
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </li>
+                    <li class="nav-item ms-3">
+                        <a class="btn btn-outline-primary btn-sm" href="https://github.com/dbccccccc/ttsfm" target="_blank" rel="noopener noreferrer" aria-label="{{ _('nav.github') }}">
+                            <i class="fab fa-github me-1"></i>{{ _('nav.github') }}
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main id="main-content" style="padding-top: 76px; min-height: calc(100vh - 76px);">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Internationalization Support -->
+    <script src="{{ url_for('static', filename='js/i18n.js') }}"></script>
+
+    <!-- Enhanced Common JavaScript -->
+    <script>
+        // Enhanced service status checking
+        async function checkStatus() {
+            try {
+                const response = await fetch('/api/health');
+                const data = await response.json();
+
+                const indicator = document.getElementById('status-indicator');
+                const text = document.getElementById('status-text');
+
+                if (response.ok && data.status === 'healthy') {
+                    indicator.className = 'status-indicator status-online';
+                    text.textContent = '{{ _("nav.status_online") }}';
+                } else {
+                    indicator.className = 'status-indicator status-offline';
+                    text.textContent = '{{ _("nav.status_offline") }}';
+                }
+            } catch (error) {
+                const indicator = document.getElementById('status-indicator');
+                const text = document.getElementById('status-text');
+                indicator.className = 'status-indicator status-offline';
+                text.textContent = '{{ _("nav.status_offline") }}';
+            }
+        }
+
+        // Enhanced page initialization
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check status immediately and periodically
+            checkStatus();
+            setInterval(checkStatus, 30000); // Check every 30 seconds
+
+            // Initialize tooltips
+            if (typeof bootstrap !== 'undefined') {
+                const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+                tooltipTriggerList.map(function (tooltipTriggerEl) {
+                    return new bootstrap.Tooltip(tooltipTriggerEl);
+                });
+            }
+
+            // Add smooth scrolling for anchor links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        e.preventDefault();
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+
+            // Add fade-in animation to main content
+            const mainContent = document.querySelector('main');
+            if (mainContent) {
+                mainContent.classList.add('fade-in');
+            }
+
+            // Add loading states to external links
+            document.querySelectorAll('a[target="_blank"]').forEach(link => {
+                link.addEventListener('click', function() {
+                    this.style.opacity = '0.7';
+                    setTimeout(() => {
+                        this.style.opacity = '1';
+                    }, 1000);
+                });
+            });
+        });
+
+        // Enhanced utility function to show loading state
+        function setLoading(button, loading) {
+            if (loading) {
+                button.classList.add('loading');
+                button.disabled = true;
+                button.style.cursor = 'wait';
+            } else {
+                button.classList.remove('loading');
+                button.disabled = false;
+                button.style.cursor = 'pointer';
+            }
+        }
+
+        // Enhanced utility function to show alerts
+        function showAlert(message, type = 'info', duration = 5000) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show fade-in`;
+            alertDiv.style.position = 'relative';
+            alertDiv.style.zIndex = '1050';
+            alertDiv.innerHTML = `
+                <i class="fas fa-${getAlertIcon(type)} me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+
+            // Find the best container to insert the alert
+            const container = document.querySelector('main .container') || document.querySelector('.container') || document.body;
+            if (container) {
+                container.insertBefore(alertDiv, container.firstChild);
+
+                // Auto-dismiss after specified duration
+                setTimeout(() => {
+                    if (alertDiv.parentNode) {
+                        alertDiv.classList.remove('show');
+                        setTimeout(() => {
+                            if (alertDiv.parentNode) {
+                                alertDiv.remove();
+                            }
+                        }, 150);
+                    }
+                }, duration);
+
+                // Scroll to alert if it's not visible
+                alertDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+
+        // Helper function to get appropriate icon for alert type
+        function getAlertIcon(type) {
+            const icons = {
+                'success': 'check-circle',
+                'danger': 'exclamation-triangle',
+                'warning': 'exclamation-triangle',
+                'info': 'info-circle',
+                'primary': 'info-circle'
+            };
+            return icons[type] || 'info-circle';
+        }
+
+        // Enhanced error handling for fetch requests
+        async function safeFetch(url, options = {}) {
+            try {
+                const response = await fetch(url, options);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return response;
+            } catch (error) {
+                console.error('Fetch error:', error);
+                showAlert(`Network error: ${error.message}`, 'danger');
+                throw error;
+            }
+        }
+
+        // Performance monitoring
+        window.addEventListener('load', function() {
+            // Log page load time
+            const loadTime = performance.now();
+            console.log(`Page loaded in ${Math.round(loadTime)}ms`);
+
+            // Check for slow loading resources
+            if (loadTime > 3000) {
+                console.warn('Page load time is slow. Consider optimizing resources.');
+            }
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Alt + H for home
+            if (e.altKey && e.key === 'h') {
+                e.preventDefault();
+                window.location.href = '{{ url_for("index") }}';
+            }
+
+            // Alt + P for playground
+            if (e.altKey && e.key === 'p') {
+                e.preventDefault();
+                window.location.href = '{{ url_for("playground") }}';
+            }
+
+            // Alt + D for docs
+            if (e.altKey && e.key === 'd') {
+                e.preventDefault();
+                window.location.href = '{{ url_for("docs") }}';
+            }
+        });
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
+

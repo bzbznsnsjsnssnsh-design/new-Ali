@@ -1,0 +1,11 @@
+# Mirrors pyproject.toml [project.optional-dependencies] web (plus python-dotenv).
+# Preferred install from repo root: pip install -e ".[web]"
+argon2-cffi>=23.1.0
+flask>=2.0.0
+flask-cors>=3.0.10
+flask-socketio>=5.3.0
+python-socketio>=5.10.0
+eventlet>=0.33.3
+waitress>=3.0.0
+python-dotenv>=1.0.1
+pydub>=0.25.0

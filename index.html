@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="ar" dir="rtl" class="dark" style="background-color: #020617; color: #f8fafc;">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#020617" />
+    <title>AI Manga Reader</title>
+    <meta name="description" content="منصة متطورة لقراءة المانجا والمانهوا مع ميزات التعرف الضوئي على الحروف (OCR) والترجمة الفورية وتحويل النص إلى كلام (TTS) بدعم من الذكاء الاصطناعي (Gemini)." />
+    <meta property="og:title" content="AI Manga Reader" />
+    <meta property="og:description" content="منصة متطورة لقراءة المانجا والمانهوا مع ميزات التعرف الضوئي على الحروف (OCR) والترجمة الفورية وتحويل النص إلى كلام (TTS) بدعم من الذكاء الاصطناعي (Gemini)." />
+    
+    <style>
+      @keyframes pulseSlow {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.06); opacity: 0.85; }
+      }
+      @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+      @keyframes progressShimmer {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(200%); }
+      }
+      .app-loader-icon {
+        animation: pulseSlow 2.2s infinite ease-in-out;
+      }
+      .app-loader-spinner {
+        animation: spin 1s linear infinite;
+      }
+      .app-loader-shimmer {
+        animation: progressShimmer 1.8s infinite ease-in-out;
+      }
+    </style>
+  </head>
+  <body class="bg-slate-950 text-slate-100 min-h-screen" style="background-color: #020617; margin: 0; font-family: system-ui, -apple-system, sans-serif;">
+    <div id="root">
+      <!-- Immediate Splash Loader before React bundles hydrate -->
+      <div id="pre-react-loader" style="min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: #020617; color: #f8fafc; padding: 24px; text-align: center; box-sizing: border-box;" dir="rtl">
+        <div class="app-loader-icon" style="width: 72px; height: 72px; border-radius: 20px; background: linear-gradient(135deg, #10b981, #0d9488); display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.3); margin-bottom: 20px;">
+          <svg style="width: 36px; height: 36px; color: #ffffff;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+          </svg>
+        </div>
+        
+        <h1 style="font-size: 20px; font-weight: 800; color: #ffffff; margin: 0 0 8px 0; letter-spacing: -0.025em;">
+          AI Manga Reader
+        </h1>
+        
+        <p id="loader-status-text" style="font-size: 13px; color: #94a3b8; margin: 0 0 20px 0;">
+          جاري تجهيز الواجهة والمصادر...
+        </p>
+
+        <div style="width: 180px; height: 4px; background-color: #1e293b; border-radius: 9999px; overflow: hidden; position: relative; margin-bottom: 16px;">
+          <div class="app-loader-shimmer" style="position: absolute; top: 0; left: 0; bottom: 0; width: 60%; background: linear-gradient(90deg, transparent, #10b981, transparent); border-radius: 9999px;"></div>
+        </div>
+
+        <!-- Slow connection fallback button (appears after 6 seconds if React hasn't mounted yet) -->
+        <div id="loader-slow-hint" style="display: none; margin-top: 12px; max-width: 280px;">
+          <p style="font-size: 12px; color: #cbd5e1; margin-bottom: 12px; line-height: 1.5;">
+            الاتصال بالإنترنت بطيء، جاري تنزيل ملفات التطبيق...
+          </p>
+          <button onclick="window.location.reload()" style="background-color: #1e293b; border: 1px solid #334155; color: #f1f5f9; padding: 8px 18px; border-radius: 12px; font-size: 12px; font-weight: 600; cursor: pointer;">
+            إعادة المحاولة
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Show slow connection hint if React takes > 8s
+      setTimeout(function() {
+        var hint = document.getElementById('loader-slow-hint');
+        if (hint) { hint.style.display = 'block'; }
+      }, 8000);
+    </script>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+

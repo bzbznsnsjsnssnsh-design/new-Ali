@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% block title %}TTSFM - {{ _('home.title') }}{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center min-vh-75">
+            <div class="col-lg-8 mx-auto text-center">
+                <div class="hero-content">
+                    <div class="badge bg-primary text-white mb-3 px-3 py-2">
+                        <i class="fas fa-code me-2"></i>Python Package
+                    </div>
+                    <h1 class="display-4 fw-bold mb-4">
+                        {{ _('home.title') }}
+                    </h1>
+                    <p class="lead mb-4">
+                        {{ _('home.subtitle') }}
+                    </p>
+                    <div class="d-flex flex-wrap gap-3 justify-content-center">
+                        <a href="{{ url_for('playground') }}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-play me-2"></i>{{ _('home.try_demo') }}
+                        </a>
+                        <a href="{{ url_for('docs') }}" class="btn btn-outline-secondary btn-lg">
+                            <i class="fas fa-book me-2"></i>{{ _('home.documentation') }}
+                        </a>
+                        <a href="https://github.com/dbccccccc/ttsfm" class="btn btn-outline-secondary btn-lg" target="_blank" rel="noopener noreferrer">
+                            <i class="fab fa-github me-2"></i>{{ _('home.github') }}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-5" style="background-color: #f8fafc;">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 text-center mb-5">
+                <h2 class="fw-bold mb-4">{{ _('home.features_title') }}</h2>
+                <p class="lead text-muted">
+                    {{ _('home.features_subtitle') }}
+                </p>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-3">
+                <div class="text-center">
+                    <div class="feature-icon text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 4rem; height: 4rem; background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);">
+                        <i class="fas fa-key"></i>
+                    </div>
+                    <h5 class="fw-bold">{{ _('home.feature_free_title') }}</h5>
+                    <p class="text-muted">{{ _('home.feature_free_desc') }}</p>
+                </div>
+            </div>
+
+            <div class="col-lg-3">
+                <div class="text-center">
+                    <div class="feature-icon text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 4rem; height: 4rem; background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);">
+                        <i class="fas fa-magic"></i>
+                    </div>
+                    <h5 class="fw-bold">{{ _('home.feature_openai_title') }}</h5>
+                    <p class="text-muted">{{ _('home.feature_openai_desc') }}</p>
+                </div>
+            </div>
+
+            <div class="col-lg-3">
+                <div class="text-center">
+                    <div class="feature-icon text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 4rem; height: 4rem; background: linear-gradient(135deg, #059669 0%, #10b981 100%);">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <h5 class="fw-bold">{{ _('home.feature_async_title') }}</h5>
+                    <p class="text-muted">{{ _('home.feature_async_desc') }}</p>
+                </div>
+            </div>
+
+            <div class="col-lg-3">
+                <div class="text-center">
+                    <div class="feature-icon text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 4rem; height: 4rem; background: linear-gradient(135deg, #6b7280 0%, #9ca3af 100%);">
+                        <i class="fas fa-microphone-alt"></i>
+                    </div>
+                    <h5 class="fw-bold">{{ _('home.feature_voices_title') }} & {{ _('home.feature_formats_title') }}</h5>
+                    <p class="text-muted">{{ _('home.feature_voices_desc') }} {{ _('home.feature_formats_desc') }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Quick Start Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 text-center mb-5">
+                <h2 class="fw-bold mb-4">{{ _('home.quick_start_title') }}</h2>
+                <p class="lead text-muted">
+                    {{ _('home.subtitle') }}
+                </p>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-6">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fas fa-download me-2 text-primary"></i>{{ _('home.installation_title') }}
+                        </h5>
+                        <pre class="bg-light p-3 rounded"><code>{{ _('home.installation_code') }}</code></pre>
+                        <small class="text-muted">Requires Python 3.8+</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fas fa-play me-2 text-success"></i>{{ _('home.usage_title') }}
+                        </h5>
+                        <pre class="bg-light p-3 rounded"><code>from ttsfm import TTSClient, Voice, AudioFormat
+
+client = TTSClient()
+response = client.generate_speech(
+    text="Hello, world!",
+    voice=Voice.ALLOY,
+    response_format=AudioFormat.MP3
+)
+response.save_to_file("hello")</code></pre>
+                        <small class="text-muted">No API keys required</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-12 text-center">
+                <div class="d-flex justify-content-center gap-3 flex-wrap">
+                    <a href="{{ url_for('playground') }}" class="btn btn-primary">
+                        <i class="fas fa-play me-2"></i>{{ _('home.try_demo') }}
+                    </a>
+                    <a href="{{ url_for('docs') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-book me-2"></i>{{ _('home.documentation') }}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+{% endblock %}

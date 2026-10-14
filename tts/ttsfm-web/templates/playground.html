@@ -1,0 +1,366 @@
+{% extends "base.html" %}
+
+{% block title %}TTSFM {{ _('nav.playground') }} - {{ _('playground.title') }}{% endblock %}
+
+{% block content %}
+<!-- Clean Playground Header -->
+<section class="py-5" style="background-color: white; border-bottom: 1px solid #e5e7eb;">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <div class="fade-in">
+                    <div class="badge bg-primary text-white mb-3 px-3 py-2">
+                        <i class="fas fa-flask me-2"></i>{{ _('common.demo') }}
+                    </div>
+                    <h1 class="display-4 fw-bold mb-3 text-dark">
+                        <i class="fas fa-play-circle me-3 text-primary"></i>{{ _('playground.title') }}
+                    </h1>
+                    <p class="lead mb-4 text-muted">
+                        {{ _('playground.subtitle') }}
+                    </p>
+                </div>
+            </div>
+            <div class="col-lg-4 text-center">
+                <div class="playground-visual fade-in" style="animation-delay: 0.3s;">
+                    <div class="playground-icon">
+                        <i class="fas fa-waveform-lines text-primary"></i>
+                        <div class="pulse-ring"></div>
+                        <div class="pulse-ring pulse-ring-delay"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="container py-5 playground">
+
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <div class="card shadow-lg-custom border-0 fade-in">
+                <div class="card-header bg-gradient-primary text-white">
+                    <h4 class="mb-0 d-flex align-items-center">
+                        <i class="fas fa-microphone me-2"></i>
+                        {{ _('playground.title') }}
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    <form id="tts-form" onsubmit="return false;">
+                        <!-- Enhanced Text Input -->
+                        <div class="mb-4">
+                            <label for="text-input" class="form-label fw-bold d-flex align-items-center">
+                                <i class="fas fa-edit me-2 text-primary"></i>
+                                {{ _('playground.text_input_label') }}
+                            </label>
+                            <div class="position-relative">
+                                <textarea
+                                    class="form-control shadow-sm"
+                                    id="text-input"
+                                    rows="4"
+                                    placeholder="{{ _('playground.text_input_placeholder') }}"
+                                    required
+                                >Hello! This is a test of the TTSFM text-to-speech system.</textarea>
+                                <div class="position-absolute top-0 end-0 p-2">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" id="clear-text-btn" title="{{ _('common.clear_text') }}">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="form-text d-flex justify-content-between align-items-center">
+                                <div class="d-flex align-items-center gap-3">
+                                    <span class="text-muted">
+                                        <i class="fas fa-keyboard me-1"></i>
+                                        <span id="char-count">0</span> {{ _('playground.character_count') }}
+                                    </span>
+                                    <span id="length-status" class=""></span>
+                                    <span id="auto-combine-status" class="badge bg-success d-none">
+                                        <i class="fas fa-magic me-1"></i>{{ _('playground.max_length_warning') }}
+                                    </span>
+                                    <span class="text-muted small">
+                                        <i class="fas fa-lightbulb me-1"></i>
+                                        {{ _('common.tip_ctrl_enter') }}
+                                    </span>
+                                </div>
+                                <div class="btn-group" role="group">
+                                    <button type="button" class="btn btn-sm btn-outline-primary" id="validate-text-btn">
+                                        <i class="fas fa-check me-1"></i>{{ _('common.validate') if _('common.validate') != 'common.validate' else 'Validate' }}
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" id="random-text-btn">
+                                        <i class="fas fa-dice me-1"></i>{{ _('playground.random_text') }}
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="validation-result" class="mt-2 d-none"></div>
+                        </div>
+
+                        <div class="row">
+                            <!-- Enhanced Voice Selection -->
+                            <div class="col-md-6 mb-4">
+                                <label for="voice-select" class="form-label fw-bold d-flex align-items-center">
+                                    <i class="fas fa-microphone me-2 text-primary"></i>
+                                    {{ _('playground.voice_label') }}
+                                </label>
+                                <select class="form-select shadow-sm" id="voice-select" required>
+                                    <option value="">{{ _('common.loading_voices') }}</option>
+                                </select>
+                                <div class="form-text">
+                                    <span>{{ _('common.choose_voice') }}</span>
+                                </div>
+                            </div>
+
+                            <!-- Format Selection -->
+                            <div class="col-md-6 mb-4">
+                                <label for="format-select" class="form-label fw-bold d-flex align-items-center">
+                                    <i class="fas fa-file-audio me-2 text-primary"></i>
+                                    {{ _('playground.format_label') if _('playground.format_label') != 'playground.format_label' else 'Audio Format' }}
+                                </label>
+                                <select class="form-select shadow-sm" id="format-select" required>
+                                    <option value="mp3" selected>mp3</option>
+                                    <option value="wav">wav</option>
+                                    <option value="opus">opus</option>
+                                    <option value="aac">aac</option>
+                                    <option value="flac">flac</option>
+                                    <option value="pcm">pcm</option>
+                                </select>
+                                <div class="form-text">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    {{ _('playground.format_description') }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Advanced Options -->
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <label for="max-length-input" class="form-label fw-bold">
+                                    <i class="fas fa-ruler me-2"></i>{{ _('common.max_length') }}
+                                </label>
+                                <input
+                                    type="number"
+                                    class="form-control"
+                                    id="max-length-input"
+                                    value="1000"
+                                    min="1"
+                                    max="1000"
+                                >
+                                <div class="form-text">
+                                    {{ _('playground.max_length_description') }}
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-cog me-2"></i>{{ _('common.options') }}
+                                </label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="validate-length-check" checked>
+                                    <label class="form-check-label" for="validate-length-check">
+                                        {{ _('playground.enable_length_validation') }}
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="auto-combine-check" checked>
+                                    <label class="form-check-label" for="auto-combine-check">
+                                        <span class="fw-bold text-primary">{{ _('playground.auto_combine_long_text') }}</span>
+                                        <i class="fas fa-info-circle ms-1" data-bs-toggle="tooltip"
+                                           title="{{ _('playground.auto_combine_tooltip') }}"></i>
+                                    </label>
+                                    <div class="form-text small">
+                                        <i class="fas fa-magic me-1"></i>
+                                        {{ _('playground.auto_combine_description') }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Speed Control -->
+                        <div class="row">
+                            <div class="col-md-12 mb-4">
+                                <label for="speed-input" class="form-label fw-bold d-flex align-items-center justify-content-between">
+                                    <span>
+                                        <i class="fas fa-gauge-high me-2 text-primary"></i>{{ _('playground.speed_label') }}
+                                    </span>
+                                    <span class="badge bg-primary" id="speed-value-display">1.0x</span>
+                                </label>
+                                <div class="d-flex align-items-center gap-3">
+                                    <span class="text-muted small">0.25x</span>
+                                    <input
+                                        type="range"
+                                        class="form-range flex-grow-1"
+                                        id="speed-input"
+                                        min="0.25"
+                                        max="4.0"
+                                        step="0.25"
+                                        value="1.0"
+                                    >
+                                    <span class="text-muted small">4.0x</span>
+                                </div>
+                                <div class="form-text">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    {{ _('playground.speed_description') }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Instructions (Optional) -->
+                        <div class="mb-4">
+                            <label for="instructions-input" class="form-label fw-bold">
+                                <i class="fas fa-magic me-2"></i>{{ _('playground.instructions_label') }}
+                            </label>
+                            <input
+                                type="text"
+                                class="form-control"
+                                id="instructions-input"
+                                placeholder="{{ _('playground.instructions_placeholder') }}"
+                            >
+                            <div class="form-text">
+                                {{ _('playground.instructions_description') }}
+                            </div>
+                        </div>
+
+                        <!-- API Key (Optional) -->
+                        <div class="mb-4" id="api-key-section">
+                            <label for="api-key-input" class="form-label fw-bold">
+                                <i class="fas fa-key me-2"></i>{{ _('playground.api_key_optional') }}
+                            </label>
+                            <div class="input-group">
+                                <input
+                                    type="password"
+                                    class="form-control"
+                                    id="api-key-input"
+                                    placeholder="{{ _('playground.api_key_placeholder') }}"
+                                >
+                                <button class="btn btn-outline-secondary" type="button" id="toggle-api-key-visibility">
+                                    <i class="fas fa-eye" id="api-key-eye-icon"></i>
+                                </button>
+                            </div>
+                            <div class="form-text">
+                                <i class="fas fa-info-circle me-1"></i>
+                                {{ _('playground.api_key_description') }}
+                            </div>
+                        </div>
+
+                        <!-- Enhanced Generate Button -->
+                        <div class="text-center mb-4">
+                            <div class="d-grid gap-2 d-md-block">
+                                <button type="submit" class="btn btn-primary btn-lg px-4 py-3" id="generate-btn">
+                                    <span class="btn-text">
+                                        <i class="fas fa-magic me-2"></i>{{ _('playground.generate_speech') }}
+                                    </span>
+                                    <span class="loading-spinner">
+                                        <i class="fas fa-spinner fa-spin me-2"></i>{{ _('playground.generating') }}
+                                    </span>
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-lg ms-md-3" id="reset-form-btn">
+                                    <i class="fas fa-redo me-2"></i>{{ _('common.reset') }}
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- Enhanced Audio Player -->
+                    <div id="audio-result" class="d-none">
+                        <div class="border-top pt-4 mt-4">
+                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                <h5 class="mb-0 d-flex align-items-center">
+                                    <i class="fas fa-volume-up me-2 text-success"></i>
+                                    {{ _('playground.audio_player_title') }}
+                                    <span class="badge bg-success ms-2">
+                                        <i class="fas fa-check me-1"></i>{{ _('common.ready') }}
+                                    </span>
+                                </h5>
+                                <div class="btn-group" role="group">
+                                    <button type="button" class="btn btn-sm btn-outline-primary" id="replay-btn" title="{{ _('common.replay_audio') }}">
+                                        <i class="fas fa-redo"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" id="share-btn" title="{{ _('common.share_audio') }}">
+                                        <i class="fas fa-share"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="audio-player-container bg-light rounded p-3 mb-3">
+                                <audio controls class="audio-player w-100" id="audio-player" preload="metadata">
+                                    {{ _('common.browser_no_audio_support') }}
+                                </audio>
+                                <div class="audio-controls mt-2 d-flex justify-content-between align-items-center">
+                                    <div class="audio-info">
+                                        <span id="audio-info" class="text-muted small"></span>
+                                    </div>
+                                    <div class="audio-actions">
+                                        <button type="button" class="btn btn-success btn-sm" id="download-btn">
+                                            <i class="fas fa-download me-1"></i>{{ _('playground.download_audio') }}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="audio-stats row text-center">
+                                <div class="col-lg-2 col-md-4 col-6">
+                                    <div class="stat-item">
+                                        <i class="fas fa-clock text-primary"></i>
+                                        <div class="stat-value" id="audio-duration">--</div>
+                                        <div class="stat-label">{{ _('playground.duration') }}</div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-2 col-md-4 col-6">
+                                    <div class="stat-item">
+                                        <i class="fas fa-file text-info"></i>
+                                        <div class="stat-value" id="audio-size">--</div>
+                                        <div class="stat-label">{{ _('playground.file_size') }}</div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-2 col-md-4 col-6">
+                                    <div class="stat-item">
+                                        <i class="fas fa-microphone text-warning"></i>
+                                        <div class="stat-value" id="audio-voice">--</div>
+                                        <div class="stat-label">{{ _('playground.voice') }}</div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-2 col-md-4 col-6">
+                                    <div class="stat-item">
+                                        <i class="fas fa-music text-success"></i>
+                                        <div class="stat-value" id="audio-format">--</div>
+                                        <div class="stat-label">{{ _('playground.format') }}</div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-2 col-md-4 col-6">
+                                    <div class="stat-item">
+                                        <i class="fas fa-gauge-high text-danger"></i>
+                                        <div class="stat-value" id="audio-speed">--</div>
+                                        <div class="stat-label">{{ _('playground.speed') }}</div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-2 col-md-4 col-6">
+                                    <div class="stat-item">
+                                        <i class="fas fa-layer-group text-secondary"></i>
+                                        <div class="stat-value" id="audio-chunks">--</div>
+                                        <div class="stat-label">{{ _('playground.chunks') }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Socket.IO for WebSocket support -->
+<script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
+<!-- WebSocket TTS Client -->
+<script src="{{ url_for('static', filename='js/websocket-tts.js') }}"></script>
+<!-- Enhanced Playground JavaScript with WebSocket Support -->
+<script type="module" src="{{ url_for('static', filename='js/playground.js') }}"></script>
+<script>
+    // Additional playground-specific functionality
+    console.log('TTSFM Enhanced Playground with WebSocket support loaded successfully!');
+
+
+</script>
+{% endblock %}

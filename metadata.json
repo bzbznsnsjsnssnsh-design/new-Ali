@@ -1,0 +1,8 @@
+{
+  "name": "Remix new Ali ",
+  "description": "منصة متطورة لقراءة المانجا والمانهوا مع ميزات التعرف الضوئي على الحروف (OCR) والترجمة الفورية وتحويل النص إلى كلام (TTS) بدعم من الذكاء الاصطناعي (Gemini).",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

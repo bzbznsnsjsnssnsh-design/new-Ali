@@ -1,0 +1,49 @@
+{
+  "entities": {
+    "AggregatedManga": {
+      "title": "AggregatedManga",
+      "description": "Manga information fetched from an aggregator",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "maxLength": 500 },
+        "description": { "type": "string", "maxLength": 5000 },
+        "coverUrl": { "type": "string", "maxLength": 1000 },
+        "languages": { "type": "array", "items": { "type": "string", "maxLength": 20 }, "maxLength": 50 },
+        "type": { "type": "string", "enum": ["manga", "manhwa", "manhua"] },
+        "source": { "type": "string", "maxLength": 100 },
+        "sourceId": { "type": "string", "maxLength": 100 },
+        "author": { "type": "string", "maxLength": 200 }
+      },
+      "required": ["title", "source", "sourceId"]
+    },
+    "FavoriteManga": {
+      "title": "FavoriteManga",
+      "description": "User favorite manga saved across sessions",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 200 },
+        "sourceId": { "type": "string", "maxLength": 100 },
+        "sourceName": { "type": "string", "maxLength": 100 },
+        "title": { "type": "string", "maxLength": 500 },
+        "coverUrl": { "type": "string", "maxLength": 5000 },
+        "author": { "type": "string", "maxLength": 500 },
+        "status": { "type": "string", "maxLength": 100 },
+        "description": { "type": "string", "maxLength": 10000 },
+        "type": { "type": "string", "maxLength": 100 },
+        "language": { "type": "string", "maxLength": 50 },
+        "addedAt": { "type": "number" }
+      },
+      "required": ["id", "title", "addedAt"]
+    }
+  },
+  "firestore": {
+    "aggregated_mangas": {
+      "schema": "AggregatedManga",
+      "description": "Aggregated mangas from MangaDex"
+    },
+    "favorites": {
+      "schema": "FavoriteManga",
+      "description": "Collection of user favorite mangas"
+    }
+  }
+}
